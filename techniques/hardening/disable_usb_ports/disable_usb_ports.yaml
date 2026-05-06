@@ -1,0 +1,53 @@
+id: disable_ipv6
+name: Disable Ipv6
+version: '1.0'
+description: A technique to disable Ipv6 on both Linux and Windows
+documentation: |-
+  A technique to disable Ipv6 on both Linux and Windows
+
+
+  For Windows, the registry entry *HKLM:\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters* is configured.
+  Windows systems need to be restarted for the change to be effective.
+
+
+  For Linux, the file */etc/sysctl.d/70-disable-ipv6.conf* is configured with the lines
+  ```
+  net.ipv6.conf.all.disable_ipv6 = 1
+  net.ipv6.conf.default.disable_ipv6 = 1
+  ```
+category: ncf_techniques
+items:
+  - id: b36abc8d-66ab-4b9a-bd6f-3ef5afd698ff
+    name: ''
+    condition: windows
+    method: registry_entry_present
+    params:
+      key: HKLM:\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters
+      entry: DisabledComponents
+      value: '255'
+      registryType: Dword
+  - id: 90b52bc2-7681-4752-afaf-14be0a388608
+    name: Disable Ipv6 on Linux
+    reporting:
+      mode: weighted
+    condition: linux
+    items:
+      - id: f4018810-c1d6-41c7-a2f9-804b7aa69e6a
+        name: Ensure file 70-disable-ipv6.conf exists in sysctl.d directory
+        method: file_present
+        params:
+          path: /etc/sysctl.d/70-disable-ipv6.conf
+      - id: 173507dc-99c0-4657-8470-1be116b07b1a
+        name: Configure 70-disable-ipv6.conf file
+        method: file_lines_present
+        params:
+          path: /etc/sysctl.d/70-disable-ipv6.conf
+          lines: |-
+            net.ipv6.conf.all.disable_ipv6 = 1
+            net.ipv6.conf.default.disable_ipv6 = 1
+      - id: 1b0f552c-9514-4c94-86f2-2e1b1ae285eb
+        name: Restart service when file is modified
+        condition: file_lines_present__etc_sysctl_d_70_disable_ipv6_conf_repaired
+        method: service_restart
+        params:
+          name: systemd-sysctl

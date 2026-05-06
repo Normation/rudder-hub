@@ -1,0 +1,16 @@
+id: disable_netbios_windows
+name: Disable Netbios Windows
+version: '1.0'
+description: A technique to disable Netbios on Windows
+documentation: |-
+  A technique to disable Netbios on Windows.
+
+  A command execution is used to change all the registry entries beginning by *HKLM:\SYSTEM\CurrentControlSet\Services\netbt\Parameters\interfaces\tcpip_*
+category: ncf_techniques
+items:
+  - id: f3ee1f8f-7359-420d-bc44-b4b13f38d07c
+    name: Disable netbios
+    method: command_execution
+    params:
+      command: Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\netbt\Parameters\interfaces\tcpip_*'
+        -name NetBiosOptions -value 2 -Verbose
