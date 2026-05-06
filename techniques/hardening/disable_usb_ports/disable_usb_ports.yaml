@@ -1,53 +1,47 @@
-id: disable_ipv6
-name: Disable Ipv6
+id: disable_usb_ports
+name: Disable USB ports
 version: '1.0'
-description: A technique to disable Ipv6 on both Linux and Windows
+description: A technique to disable usb ports on both Linux and Windows.
 documentation: |-
-  A technique to disable Ipv6 on both Linux and Windows
+  This technique can be used for Linux and Windows systems.
 
+  For Linux, the modules *usbstorage* and *uas* are blacklisted using the /etc/modprobe.d/blacklist-usb-storage.conf.
 
-  For Windows, the registry entry *HKLM:\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters* is configured.
-  Windows systems need to be restarted for the change to be effective.
+  For Windows, the registry entry HKLM:\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\USBSTOR is used.
+  A reboot of the Windows system is necessary for the change to be effective. A generic method *Command Execution* can be added to reboot automatically the systems.
 
-
-  For Linux, the file */etc/sysctl.d/70-disable-ipv6.conf* is configured with the lines
-  ```
-  net.ipv6.conf.all.disable_ipv6 = 1
-  net.ipv6.conf.default.disable_ipv6 = 1
-  ```
 category: ncf_techniques
 items:
-  - id: b36abc8d-66ab-4b9a-bd6f-3ef5afd698ff
-    name: ''
-    condition: windows
-    method: registry_entry_present
-    params:
-      key: HKLM:\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters
-      entry: DisabledComponents
-      value: '255'
-      registryType: Dword
-  - id: 90b52bc2-7681-4752-afaf-14be0a388608
-    name: Disable Ipv6 on Linux
+  - id: 136c768d-1dee-40df-852e-91d42f4a693d
+    name: For Linux
     reporting:
       mode: weighted
     condition: linux
     items:
-      - id: f4018810-c1d6-41c7-a2f9-804b7aa69e6a
-        name: Ensure file 70-disable-ipv6.conf exists in sysctl.d directory
+      - id: 074b5455-6008-44c0-baa4-5f2a45b91856
+        name: blacklist-usb-storage.conf file present
         method: file_present
         params:
-          path: /etc/sysctl.d/70-disable-ipv6.conf
-      - id: 173507dc-99c0-4657-8470-1be116b07b1a
-        name: Configure 70-disable-ipv6.conf file
+          path: /etc/modprobe.d/blacklist-usb-storage.conf
+      - id: 3ddeaaf7-59ee-475f-9498-1892cd8fa8b6
+        name: Blacklist modules in file /etc/modprobe.d/blacklist-usb-storage.conf
         method: file_lines_present
         params:
-          path: /etc/sysctl.d/70-disable-ipv6.conf
+          path: /etc/modprobe.d/blacklist-usb-storage.conf
           lines: |-
-            net.ipv6.conf.all.disable_ipv6 = 1
-            net.ipv6.conf.default.disable_ipv6 = 1
-      - id: 1b0f552c-9514-4c94-86f2-2e1b1ae285eb
-        name: Restart service when file is modified
-        condition: file_lines_present__etc_sysctl_d_70_disable_ipv6_conf_repaired
-        method: service_restart
+            blacklist usb_storage
+            blacklist uas
+  - id: 6e2fce58-6895-42e2-a3a1-748e018b97c6
+    name: for Windows
+    reporting:
+      mode: weighted
+    condition: windows
+    items:
+      - id: 58cc0423-d41d-43d0-8ef8-27bb9d261174
+        name: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\USBSTOR
+        method: registry_entry_present
         params:
-          name: systemd-sysctl
+          key: Configure registry key HKLM:\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\USBSTOR
+          entry: Start
+          value: '4'
+          registryType: Dword
