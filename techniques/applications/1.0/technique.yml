@@ -1,0 +1,152 @@
+id: upgrade_rudder_agent_on_debian_family
+name: Upgrade Rudder agent on Debian and Ubuntu families
+version: '1.0'
+description: Sets repository parameters and upgrades Rudder agent for the correct
+  Debian/Ubuntu version
+documentation: |-
+  This technique :
+  * Builds the `/etc/apt/souces.list.d/rudder.list` repository file
+  * Builds the `/etc/apt/auth.conf.d/rudder.conf` credentials file
+  * Using the proper repository for the actual OS version
+  * Using input parameters for :
+      * Rudder repository to use
+      * Rudder agent version to deploy
+      * Rudder licence name
+      * Rudder licence password
+category: applications
+params:
+  - id: 56efcd1b-1b1e-4cac-a7e0-911f640cc8d0
+    name: rudder_version
+    description: Rudder version
+    documentation: Rudder agent version to install
+    constraints:
+      allow_empty: false
+  - id: b93eec04-0ac2-4a6b-850a-a1a45ff665bf
+    name: rudder_repository
+    description: Rudder repository
+    documentation: Rudder repository to use, i.e. repository.rudder.io (public) or
+      download.rudder.io (private)
+    constraints:
+      allow_empty: false
+  - id: 8575ef95-063a-4958-abf5-126f6b2eeca4
+    name: rudder_licence
+    description: Rudder licence
+    documentation: Your company's Rudder licence name, or leave empty for public repository
+    constraints:
+      allow_empty: true
+  - id: 49539815-6ee3-462b-b553-30d55f341d3c
+    name: licence_password
+    description: Licence password
+    documentation: Your company's Rudder licence password or leave empty for public
+      repository
+    constraints:
+      allow_empty: true
+items:
+  - id: 578cca2e-0469-4edd-ad14-6ddc855a4595
+    name: 10 - Node is Debian / Ubuntu family
+    reporting:
+      mode: weighted
+    condition: debian
+    items:
+      - id: 78521ee1-97a6-421e-aa67-ffa90d44e835
+        name: 10-010 - Determine if licence provided
+        reporting:
+          mode: disabled
+        method: condition_from_variable_match
+        params:
+          condition: debian_rudder_licence_provided
+          variable_name: upgrade_rudder_agent_on_debian_family.rudder_licence
+          expected_match: ^[[:alnum:]]+.*
+      - id: 48a027e2-3550-4d15-8027-f96029a66b66
+        name: 10-020 - Determine if password provided
+        reporting:
+          mode: disabled
+        condition: debian_rudder_licence_provided_true
+        method: condition_from_variable_match
+        params:
+          condition: debian_rudder_password_provided
+          variable_name: upgrade_rudder_agent_on_debian_family.licence_password
+          expected_match: ^[[:graph:]]+.*
+      - id: ec418d31-f1ad-4526-84dc-93f3ad8f5876
+        name: 10-030 Rudder packages GPG signing key installed
+        method: file_from_local_source
+        params:
+          source: ${resources_dir}/rudder_release_key.gpg
+          path: /etc/apt/trusted.gpg.d/rudder_release_key.gpg
+      - id: f375ea4d-734d-4ea5-95dd-de576a60ffa9
+        name: 10-040 Rudder packages GPG signing key permissions
+        method: permissions
+        params:
+          path: /etc/apt/trusted.gpg.d/rudder_release_key.gpg
+          mode: '0644'
+          owner: root
+          group: root
+      - id: 5de65f37-e442-4201-bc7d-567125891616
+        name: 10-050 - Rudder repository set to ${rudder_repository} for debian-family
+          OS with Rudder ${rudder_version}
+        method: file_from_template_mustache
+        params:
+          source_template: ${resources_dir}/rudder.list.tpl
+          path: /etc/apt/sources.list.d/rudder.list
+      - id: 10f780e3-d11d-41a4-bb69-912d3d707935
+        name: 10-060 - Rudder repository file permissions
+        method: permissions
+        params:
+          path: /etc/apt/sources.list.d/rudder.list
+          mode: '644'
+          owner: root
+          group: root
+      - id: f1673845-2d12-4974-ab45-98dd3b6f0a2d
+        name: 10-070-10 - Rudder repository credentials file absent for public repository
+        condition: '!debian_rudder_password_provided_true'
+        method: file_absent
+        params:
+          path: /etc/apt/auth.conf.d/rudder.conf
+      - id: 2380b98e-6977-4ca5-a8e7-1ba3cf01f51c
+        name: 10-070-20 - Rudder repository credentials file configuration
+        reporting:
+          mode: weighted
+        condition: debian_rudder_password_provided_true
+        items:
+          - id: ea37b528-0a4e-4269-ade3-1ab78cd66cb3
+            name: 10-070-20-10 - Rudder repository credentials file present
+            method: file_present
+            params:
+              path: /etc/apt/auth.conf.d/rudder.conf
+          - id: cee42f3b-7e17-4478-9540-07d5bd8c5d36
+            name: 10-070-20-20 - Rudder repository credentials file content
+            method: file_content
+            params:
+              path: /etc/apt/auth.conf.d/rudder.conf
+              lines: machine ${rudder_repository} login ${rudder_licence} password
+                ${licence_password}
+              enforce: 'true'
+          - id: 2f1ce6fc-6eb0-437a-aaca-2eabe1c8ae27
+            name: 10-070-20-30 - Rudder repository credentials file permissions
+            method: permissions
+            params:
+              path: /etc/apt/auth.conf.d/rudder.conf
+              mode: '640'
+              owner: root
+              group: root
+      - id: 4060dd81-5fb7-4c3e-870b-891c1a9f4b2a
+        name: 10-090 - Purge available packages cache
+        condition: file_from_template__etc_apt_sources_list_d_rudder_list_repaired|file_lines_present__etc_apt_auth_conf_d_rudder_conf_repaired
+        method: command_execution
+        params:
+          command: rm -f /var/rudder/cfengine-community/state/packages_updates*
+      - id: e95066c5-38e3-458b-8da7-d4f6c19caaf6
+        name: 10-100 - Rudder agent latest version installed
+        method: package_present
+        params:
+          name: rudder-agent
+          version: latest
+          architecture: ''
+          provider: ''
+      - id: 47e3e1db-8e17-40c8-9123-9404ec6d32e1
+        name: 10-110 - Trigger Rudder inventory
+        condition: package_present_rudder_agent_repaired
+        method: rudder_inventory_trigger
+        params:
+          id: upgrade_rudder_agent_on_debian_family_trigger_inventory
+
