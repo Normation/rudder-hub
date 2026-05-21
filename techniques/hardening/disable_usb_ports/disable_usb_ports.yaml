@@ -9,7 +9,6 @@ documentation: |-
 
   For Windows, the registry entry HKLM:\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\USBSTOR is used.
   A reboot of the Windows system is necessary for the change to be effective. A generic method *Command Execution* can be added to reboot automatically the systems.
-
 category: ncf_techniques
 items:
   - id: 136c768d-1dee-40df-852e-91d42f4a693d
@@ -45,3 +44,10 @@ items:
           entry: Start
           value: '4'
           registryType: Dword
+      - id: aee6987b-860a-4bb8-9ce0-9393f135cec4
+        name: Stop USBSTOR service
+        method: powershell_execution
+        params:
+          command: Stop-Service USBSTOR
+          successRegex: ''
+          repairedRegex: ''
