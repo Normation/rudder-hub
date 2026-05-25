@@ -134,7 +134,7 @@ items:
         condition: file_from_template__etc_apt_sources_list_d_rudder_list_repaired|file_lines_present__etc_apt_auth_conf_d_rudder_conf_repaired
         method: command_execution
         params:
-          command: rm -f /var/rudder/cfengine-community/state/packages_updates*
+          command: rm -f /var/rudder/cfengine-community/state/packages_.*_apt.*
       - id: e95066c5-38e3-458b-8da7-d4f6c19caaf6
         name: 10-100 - Rudder agent latest version installed
         method: package_present
