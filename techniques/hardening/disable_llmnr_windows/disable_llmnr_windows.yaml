@@ -17,17 +17,23 @@ items:
       entry: EnableMulticast
       value: '0'
       registryType: Dword
-  - id: 6dff84f7-15a7-4bd6-a0d6-ef236f129ffc
+  - id: a745297d-db6f-422d-9948-1b05515ba1d5
     name: Check if LLMNR is disabled
     method: audit_from_powershell_execution
     params:
-      command: netstat -ano | findstr ":5355"
-      successRegex: ^$
+      command: |-
+        $cmd = netstat -ano | Select-String ":5355"
+
+        if (-not $cmd) {
+            Write-Output "LLMNR-disabled"
+        }
+      successRegex: LLMNR-disabled
   - id: db81d386-398c-4a46-968e-2e9ae5eb67f7
     name: Restart system if LLMNR is not disabled
-    condition: audit_from_powershell_execution_netstat__ano___findstr___5355__error
+    condition: audit_from_powershell_execution__cmd___netstat__ano___Select_String___5355___if___not__cmd________Write_Output__LLMNR_disabled____error
     method: powershell_execution
     params:
       command: Restart-Computer
       successRegex: ''
       repairedRegex: ''
+    policy_mode_override: audit

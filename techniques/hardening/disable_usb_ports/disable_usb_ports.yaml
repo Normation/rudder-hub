@@ -37,17 +37,25 @@ items:
     condition: windows
     items:
       - id: 58cc0423-d41d-43d0-8ef8-27bb9d261174
-        name: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\USBSTOR
+        name: Configure Registry entry USBSTOR
         method: registry_entry_present
         params:
-          key: Configure registry key HKLM:\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\USBSTOR
+          key: HKLM:\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\USBSTOR
           entry: Start
           value: '4'
           registryType: Dword
+      - id: 20550401-f1e8-4787-975c-510d767ef599
+        name: Check USB storage is disabled
+        method: audit_from_powershell_execution
+        params:
+          command: Get-Service usbstor | Select-Object StartType
+          successRegex: Disabled
       - id: aee6987b-860a-4bb8-9ce0-9393f135cec4
         name: Stop USBSTOR service
+        condition: audit_from_powershell_execution_Get_Service_usbstor___Select_Object_StartType_error
         method: powershell_execution
         params:
-          command: Stop-Service USBSTOR
+          command: Restart-Computer
           successRegex: ''
           repairedRegex: ''
+        policy_mode_override: audit

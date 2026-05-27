@@ -12,5 +12,24 @@ items:
     name: Disable netbios
     method: command_execution
     params:
-      command: Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\netbt\Parameters\interfaces\tcpip_*'
+      command: Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\NetBT\Parameters\Interfaces\Tcpip_*'
         -name NetBiosOptions -value 2 -Verbose
+  - id: fadac3eb-727b-45a9-9926-6fe42286950a
+    name: Check if Netbios is disabled
+    method: audit_from_powershell_execution
+    params:
+      command: |-
+        $cmd = netstat -ano | Select-String ":137"
+
+        if (-not $cmd) {
+            Write-Output "Netbios-disabled"
+        }
+      successRegex: Netbios-disabled
+  - id: d65ada99-bf6f-4cfd-a9c6-45271a983baa
+    name: Restart system if Netbios is not disabled
+    condition: audit_from_powershell_execution__cmd___netstat__ano___Select_String___137___if___not__cmd________Write_Output__Netbios_disabled____error
+    method: powershell_execution
+    params:
+      command: Restart-Computer
+      successRegex: ''
+      repairedRegex: ''
