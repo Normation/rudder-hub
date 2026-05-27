@@ -9,8 +9,7 @@ documentation: |-
 category: ncf_techniques
 items:
   - id: b36abc8d-66ab-4b9a-bd6f-3ef5afd698ff
-    name: Configure registry key HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows
-      NT\DNSClient
+    name: Configure registry key DNSClient
     method: registry_entry_present
     params:
       key: HKLM:\HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows NT\DNSClient
