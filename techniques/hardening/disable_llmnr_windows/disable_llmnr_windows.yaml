@@ -27,12 +27,3 @@ items:
             Write-Output "LLMNR-disabled"
         }
       successRegex: LLMNR-disabled
-  - id: db81d386-398c-4a46-968e-2e9ae5eb67f7
-    name: Restart system if LLMNR is not disabled
-    condition: audit_from_powershell_execution__cmd___netstat__ano___Select_String___5355___if___not__cmd________Write_Output__LLMNR_disabled____error
-    method: powershell_execution
-    params:
-      command: Restart-Computer
-      successRegex: ''
-      repairedRegex: ''
-    policy_mode_override: audit

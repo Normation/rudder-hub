@@ -50,12 +50,3 @@ items:
         params:
           command: Get-Service usbstor | Select-Object StartType
           successRegex: Disabled
-      - id: aee6987b-860a-4bb8-9ce0-9393f135cec4
-        name: Stop USBSTOR service
-        condition: audit_from_powershell_execution_Get_Service_usbstor___Select_Object_StartType_error
-        method: powershell_execution
-        params:
-          command: Restart-Computer
-          successRegex: ''
-          repairedRegex: ''
-        policy_mode_override: audit

@@ -40,15 +40,6 @@ items:
                 Write-Output "Ipv6-disabled"
             }
           successRegex: Ipv6-disabled
-      - id: 8d7b3ab5-55ff-4157-98eb-28838a6571a9
-        name: Reboot if ipv6 is not disabled
-        condition: audit_from_powershell_execution__cmd___ipconfig___Select_String__Ipv6___if___not__cmd________Write_Output__Ipv6_disabled____error
-        method: powershell_execution
-        params:
-          command: Restart-Computer
-          successRegex: ''
-          repairedRegex: ''
-        policy_mode_override: audit
   - id: 90b52bc2-7681-4752-afaf-14be0a388608
     name: Disable Ipv6 on Linux
     reporting:
