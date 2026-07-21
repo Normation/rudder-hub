@@ -44,12 +44,12 @@ params:
       allow_empty: true
 items:
   - id: 6ac6ce0b-fe73-4ff9-b8c3-f7037b88854e
-    name: 00 - Check license presence
+    name: 10 - Check license presence
     reporting:
       mode: weighted
     items:
       - id: 78521ee1-97a6-421e-aa67-ffa90d44e835
-        name: 00-010 - Determine if licence provided
+        name: 10-10 - Determine if licence provided
         reporting:
           mode: disabled
         method: condition_from_variable_match
@@ -58,7 +58,7 @@ items:
           variable_name: upgrade_rudder_agent_on_debian_rhel_families.rudder_licence
           expected_match: ^[[:alnum:]]+.*
       - id: 48a027e2-3550-4d15-8027-f96029a66b66
-        name: 10-020 - Determine if password provided
+        name: 10-20 - Determine if password provided
         reporting:
           mode: disabled
         condition: rudder_licence_provided_true
@@ -68,19 +68,19 @@ items:
           variable_name: upgrade_rudder_agent_on_debian_rhel_families.licence_password
           expected_match: ^[[:graph:]]+.*
   - id: 578cca2e-0469-4edd-ad14-6ddc855a4595
-    name: 10 - Repository Configuration - Node is Debian / Ubuntu family
+    name: 20 - Repository Configuration - Node is Debian / Ubuntu family
     reporting:
       mode: weighted
     condition: debian
     items:
       - id: ec418d31-f1ad-4526-84dc-93f3ad8f5876
-        name: 10-010 - Rudder packages GPG signing key installed
+        name: 20-10 - Rudder packages GPG signing key installed
         method: file_from_local_source
         params:
           source: ${resources_dir}/rudder_release_key.gpg
           path: /etc/apt/trusted.gpg.d/rudder_release_key.gpg
       - id: f375ea4d-734d-4ea5-95dd-de576a60ffa9
-        name: 10-020 - Rudder packages GPG signing key permissions
+        name: 20-20 - Rudder packages GPG signing key permissions
         method: permissions
         params:
           path: /etc/apt/trusted.gpg.d/rudder_release_key.gpg
@@ -88,14 +88,14 @@ items:
           owner: root
           group: root
       - id: 5de65f37-e442-4201-bc7d-567125891616
-        name: 10-030 - Rudder repository set to ${rudder_repository} for debian-family
+        name: 20-30 - Rudder repository set to ${rudder_repository} for debian-family
           OS with Rudder ${rudder_version}
         method: file_from_template_mustache
         params:
           source_template: ${resources_dir}/rudder.list.tpl
           path: /etc/apt/sources.list.d/rudder.list
       - id: 10f780e3-d11d-41a4-bb69-912d3d707935
-        name: 10-040 - Rudder repository file permissions
+        name: 20-40 - Rudder repository file permissions
         method: permissions
         params:
           path: /etc/apt/sources.list.d/rudder.list
@@ -103,24 +103,24 @@ items:
           owner: root
           group: root
       - id: f1673845-2d12-4974-ab45-98dd3b6f0a2d
-        name: 10-050-10 - Rudder repository credentials file absent for public repository
+        name: 20-50 - Rudder repository credentials file absent for public repository
         condition: '!rudder_licence_provided_true'
         method: file_absent
         params:
           path: /etc/apt/auth.conf.d/rudder.conf
       - id: 2380b98e-6977-4ca5-a8e7-1ba3cf01f51c
-        name: 10-050-20 - Rudder repository credentials file configuration
+        name: 20-60 - Rudder repository credentials file configuration
         reporting:
           mode: weighted
         condition: rudder_password_provided_true
         items:
           - id: ea37b528-0a4e-4269-ade3-1ab78cd66cb3
-            name: 10-070-20-10 - Rudder repository credentials file present
+            name: 20-60-10 - Rudder repository credentials file present
             method: file_present
             params:
               path: /etc/apt/auth.conf.d/rudder.conf
           - id: cee42f3b-7e17-4478-9540-07d5bd8c5d36
-            name: 10-070-20-20 - Rudder repository credentials file content
+            name: 20-60-20 - Rudder repository credentials file content
             method: file_content
             params:
               path: /etc/apt/auth.conf.d/rudder.conf
@@ -128,7 +128,7 @@ items:
                 ${licence_password}
               enforce: 'true'
           - id: 2f1ce6fc-6eb0-437a-aaca-2eabe1c8ae27
-            name: 10-070-20-30 - Rudder repository credentials file permissions
+            name: 20-60-30 - Rudder repository credentials file permissions
             method: permissions
             params:
               path: /etc/apt/auth.conf.d/rudder.conf
@@ -136,19 +136,19 @@ items:
               owner: root
               group: root
       - id: b682985a-93e3-421f-8843-8b211bd47a8f
-        name: 10-090 - Purge available packages cache
+        name: 20-70 - Purge available packages cache
         condition: file_from_template__etc_apt_sources_list_d_rudder_list_repaired|file_lines_present__etc_apt_auth_conf_d_rudder_conf_repaired
         method: command_execution
         params:
           command: rm -f /var/rudder/cfengine-community/state/packages_*_apt*
   - id: ab13b67c-4691-4efa-94c8-63530b9d6d2e
-    name: 20 - Repository Configuration - Node is RedHat familiy
+    name: 30 - Repository Configuration - Node is RedHat familiy
     reporting:
       mode: weighted
     condition: redhat
     items:
       - id: abb7e5fa-eb62-4fad-b03a-7c28f6d343db
-        name: 20-10 - Rudder public repository set to ${rudder_repository} for RedHat
+        name: 30-10 - Rudder public repository set to ${rudder_repository} for RedHat
           family OS with Rudder ${rudder_version}
         condition: '!rudder_password_provided_true'
         method: file_from_template_mustache
@@ -156,7 +156,7 @@ items:
           source_template: ${resources_dir}/rudder.public.repo.tpl
           path: /etc/yum.repos.d/rudder.repo
       - id: abe65f37-e442-4201-bc7d-567125891616
-        name: 20-20 - Rudder private repository set to ${rudder_repository} for for
+        name: 30-20 - Rudder private repository set to ${rudder_repository} for for
           RedHat family OS with Rudder ${rudder_version}
         condition: rudder_password_provided_true
         method: file_from_template_mustache
@@ -164,7 +164,7 @@ items:
           source_template: ${resources_dir}/rudder.private.repo.tpl
           path: /etc/yum.repos.d/rudder.repo
       - id: abf780e3-d11d-41a4-bb69-912d3d707935
-        name: 20-30 - Rudder repository file permissions
+        name: 30-30 - Rudder repository file permissions
         method: permissions
         params:
           path: /etc/yum.repos.d/rudder.repo
@@ -172,18 +172,18 @@ items:
           owner: root
           group: root
       - id: 4060dd81-5fb7-4c3e-870b-891c1a9f4b2a
-        name: 10-090 - Purge available packages cache
+        name: 30-40 - Purge available packages cache
         condition: file_from_template__etc_yum_repos_d_rudder_repo_repaired
         method: command_execution
         params:
           command: rm -f /var/rudder/cfengine-community/state/packages_*_yum*
   - id: 758e0396-5100-46c4-9500-d654145960d1
-    name: 30 - Upgrade Rudder
+    name: 40 - Upgrade Rudder
     reporting:
       mode: weighted
     items:
       - id: e95066c5-38e3-458b-8da7-d4f6c19caaf6
-        name: 30-10 - Rudder agent latest version installed
+        name: 40-10 - Rudder agent latest version installed
         method: package_present
         params:
           name: rudder-agent
@@ -191,7 +191,7 @@ items:
           architecture: ''
           provider: ''
       - id: 47e3e1db-8e17-40c8-9123-9404ec6d32e1
-        name: 30-90 - Trigger Rudder inventory
+        name: 40-20 - Trigger Rudder inventory
         condition: package_present_rudder_agent_repaired
         method: rudder_inventory_trigger
         params:
