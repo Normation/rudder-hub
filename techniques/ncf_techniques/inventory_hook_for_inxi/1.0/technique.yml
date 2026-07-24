@@ -1,0 +1,34 @@
+id: inventory_hook_for_inxi
+name: Inventory hook for inxi
+version: '1.0'
+description: Creates an Inventory hook getting a lot of system properties using inxi
+documentation: |-
+  This techniques creates an “inxi_output” inventory hook that produces a detailed system report that will be included in the nodes properties.
+  It may bring some information that the standard inventory does not contain, and allows for creating groups based on any of the criteria it returns.
+
+  Should you need more, or less, information from inxi, you can edit the resource script and adapt it to your needs by adjusting the issued inxi options.
+
+  For using this technique, you need to have “inxi” installed on your nodes, which can be done i.e. using the standard “packages” technique available on the “Directives” page.
+  We chose not to include the “inxi” package installation in this technique, as some users prefer to keep all of their packages installations grouped together in the same place.
+category: ncf_techniques
+items:
+  - id: 624fa289-270d-4f5c-a7da-2ddfdfb8f0ee
+    name: 10 - Inventory hook for inxi from resource
+    method: file_from_local_source
+    params:
+      source: ${resources_dir}/inxi_output.sh
+      path: /var/rudder/hooks.d/inxi_output.sh
+  - id: c34176cd-2fb3-459e-8dbf-7ff69f02d3bc
+    name: 20 - Inventory hook for inxi permissions
+    method: permissions
+    params:
+      path: /var/rudder/hooks.d/inxi_output.sh
+      mode: '0750'
+      owner: root
+      group: root
+  - id: bd9fef56-438c-480e-80c8-020361de4887
+    name: 30 - Inventory trigger, hook for inxi
+    condition: file_from_local_source__var_rudder_hooks_d_inxi_output_sh_repaired
+    method: rudder_inventory_trigger
+    params:
+      id: inventory_hook_for_inxi_inventory_trigger
