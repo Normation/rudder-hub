@@ -1,0 +1,48 @@
+id: sysctl_network_security
+name: Sysctl Network Security for all nodes
+version: '1.0'
+description: Sets Sysctl values for network security, for all nodes
+documentation: |-
+  This technique sets a few kernel sysctl parameters that should commonly be set to enhance network security :
+  - net.ipv4.tcp_syncookies=1 protects from SYN flood attacks
+  - net.ipv4.conf.all.log_martians=1 logs suspicious packets from wrong addresses on the wrong interface
+
+  - net.ipv4.conf.all.accept_redirects
+  - net.ipv4.conf.all.accept_source_route
+  - net.ipv6.conf.all.accept_redirects
+  - net.ipv6.conf.all.accept_source_route
+  All protect from bogus redirects or tampering with network routing.
+
+  These few parameters can be used as an example for extending such kernel network settings to fit your own specific needs.
+category: ncf_techniques
+items:
+  - id: 48d13323-c367-41cd-9f86-48fe560075f8
+    name: 10 - Protection from the SYN flood attack
+    method: sysctl_value
+    params:
+      key: net.ipv4.tcp_syncookies
+      value: '1'
+      filename: 95-rudder_network
+      option: ''
+  - id: 18b411a2-cfd8-4c3f-a63e-4dd8651a9014
+    name: 20 - See evil packets in your logs
+    method: sysctl_value
+    params:
+      key: net.ipv4.conf.all.log_martians
+      value: '1'
+      filename: 95-rudder_network
+      option: ''
+  - id: 98d16d9b-8d17-4614-86d8-72db23dd29d7
+    name: '30 - Never accept redirects or source routes : ${sys_net_sec.parm}'
+    method: sysctl_value
+    params:
+      key: ${sys_net_sec.parm}
+      value: '0'
+      filename: 95-rudder_network
+      option: ''
+    foreach:
+      - parm: net.ipv4.conf.all.accept_redirects
+      - parm: net.ipv4.conf.all.accept_source_route
+      - parm: net.ipv6.conf.all.accept_redirects
+      - parm: net.ipv6.conf.all.accept_source_route
+    foreach_name: sys_net_sec
