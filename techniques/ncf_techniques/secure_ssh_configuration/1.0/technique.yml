@@ -1,0 +1,93 @@
+id: secure_ssh_configuration
+name: Secure SSH configuration
+version: '1.0'
+description: Hardened SSH configuration to match CIS recommendation
+documentation: |-
+  The technique configures /etc/ssh/sshd_config file.
+  In particular, it sets:
+  PermitRootLogin to no
+  Ciphers to chacha20-poly1305@openssh.com,aes128-ctr,aes192-ctr,aes256-ctr,aes128-
+  gcm@openssh.com,aes256-gcm@openssh.com
+  DisableForwarding to yes
+  ClientAliveInterval 15
+  ClientAliveCountMax 3
+  GSSAPIAuthentication no
+category: ncf_techniques
+items:
+  - id: eebbc93a-03d9-464f-b430-f0d03daf18f6
+    name: ''
+    method: file_augeas
+    params:
+      show_content: ''
+      path: /etc/ssh/sshd_config
+      lens: ''
+      script: set /files/etc/ssh/sshd_config/PermitRootLogin no
+      if_script: ''
+  - id: b6277798-2ed8-433b-b559-00f240766e01
+    name: ''
+    method: file_augeas
+    params:
+      show_content: ''
+      path: /etc/ssh/sshd_config
+      lens: ''
+      script: set /files/etc/ssh/sshd_config/DisableForwarding yes
+      if_script: ''
+  - id: 8209bc48-28b7-4392-b1e6-42073badc42e
+    name: ''
+    method: file_augeas
+    params:
+      show_content: ''
+      path: /etc/ssh/sshd_config
+      lens: ''
+      script: set /files/etc/ssh/sshd_config/ClientAliveInterval 15
+      if_script: ''
+  - id: f2f9d871-6f03-403c-b307-d42caaf16a72
+    name: ''
+    method: file_augeas
+    params:
+      show_content: ''
+      path: /etc/ssh/sshd_config
+      lens: ''
+      script: set /files/etc/ssh/sshd_config/ClientAliveCountMax 3
+      if_script: ''
+  - id: c701647c-8e9d-4fba-b1b0-99c6469cbf1a
+    name: ''
+    method: file_augeas
+    params:
+      show_content: ''
+      path: /etc/ssh/sshd_config
+      lens: ''
+      script: set /files/etc/ssh/sshd_config/GSSAPIAuthentication no
+      if_script: ''
+  - id: 1f33ba5c-97f7-405f-9717-83dcbd088774
+    name: Configure ciphers to be 'chacha20-poly1305@openssh.com','aes128-ctr','aes192-ctr','aes256-ctr','aes128-gcm@openssh.com','aes256-gcm@openssh.com'
+    reporting:
+      mode: weighted
+    items:
+      - id: bb5bde4d-ba9a-4e4a-bc85-95b2413718c4
+        name: ''
+        method: file_augeas
+        params:
+          show_content: ''
+          path: /etc/ssh/sshd_config
+          lens: ''
+          script: check /files/etc/ssh/sshd_config/Ciphers/* values == ['chacha20-poly1305@openssh.com','aes128-ctr','aes192-ctr','aes256-ctr','aes128-gcm@openssh.com','aes256-gcm@openssh.com']
+          if_script: ''
+      - id: 1dda4c37-dce4-43f3-b57e-f7d56c7c1931
+        name: ''
+        condition: file_augeas__etc_ssh_sshd_config_error
+        method: file_augeas
+        params:
+          show_content: ''
+          path: /etc/ssh/sshd_config
+          lens: ''
+          script: |-
+            rm /files/etc/ssh/sshd_config/Ciphers
+
+            set /files/etc/ssh/sshd_config/Ciphers/0 chacha20-poly1305@openssh.com
+            set /files/etc/ssh/sshd_config/Ciphers/1 aes128-ctr
+            set /files/etc/ssh/sshd_config/Ciphers/2 aes192-ctr
+            set /files/etc/ssh/sshd_config/Ciphers/3 aes256-ctr
+            set /files/etc/ssh/sshd_config/Ciphers/4 aes128-gcm@openssh.com
+            set /files/etc/ssh/sshd_config/Ciphers/5 aes256-gcm@openssh.com
+          if_script: ''
