@@ -1,0 +1,21 @@
+id: check_if_reboot_required_on_debian_and_redhat_families
+name: Check if reboot required on Debian and RedHat families
+version: '1.0'
+documentation: This technique audits if a system reboot is required, and displays
+  an error if it is.
+category: ncf_techniques
+items:
+  - id: 86de8bdb-8ef2-4523-95b3-93d60d2f13dc
+    name: 10 - No reboot is required for Debian family
+    condition: debian
+    method: file_absent
+    params:
+      path: /run/reboot-required
+    policy_mode_override: audit
+  - id: cf05305c-4dfe-4c37-88b0-61e2e65df119
+    name: 20 - No reboot is required for RedHat family
+    condition: redhat
+    method: audit_from_command
+    params:
+      command: needs-restarting -r
+      compliant_codes: '0'
