@@ -1,0 +1,64 @@
+id: disable_ipv6
+name: Disable Ipv6
+version: '1.0'
+description: A technique to disable Ipv6 on both Linux and Windows
+documentation: |-
+  A technique to disable Ipv6 on both Linux and Windows
+
+
+  For Windows, the registry entry *HKLM:\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters* is configured.
+
+  For Linux, the file */etc/sysctl.d/70-disable-ipv6.conf* is configured with the lines
+  ```
+  net.ipv6.conf.all.disable_ipv6 = 1
+  net.ipv6.conf.default.disable_ipv6 = 1
+  ```
+category: ncf_techniques
+items:
+  - id: 2f5ef57d-cad8-492b-a8ce-8913fbb5cbee
+    name: Disable ipv6 on Windows
+    reporting:
+      mode: weighted
+    condition: windows
+    items:
+      - id: b36abc8d-66ab-4b9a-bd6f-3ef5afd698ff
+        name: Configure registry key HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters
+        method: registry_entry_present
+        params:
+          key: HKLM:\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters
+          entry: DisabledComponents
+          value: '255'
+          registryType: Dword
+      - id: 5ac363db-9ed4-417b-a166-9c1e50c17d03
+        name: Check if ipv6 is disabled
+        method: audit_from_powershell_execution
+        params:
+          command: |-
+            $cmd = ipconfig | Select-String "Ipv6"
+
+            if (-not $cmd) {
+                Write-Output "Ipv6-disabled"
+            }
+          successRegex: Ipv6-disabled
+  - id: 90b52bc2-7681-4752-afaf-14be0a388608
+    name: Disable Ipv6 on Linux
+    reporting:
+      mode: weighted
+    condition: linux
+    items:
+      - id: 4bda5b2f-a7fb-4adf-829a-4e6255894016
+        name: Configure sysctl default.disable_ipv6 value
+        method: sysctl_value
+        params:
+          key: net.ipv6.conf.default.disable_ipv6
+          value: '1'
+          filename: 70-disable-ipv6
+          option: ''
+      - id: 84aa3452-68e2-42e3-97f3-239fe5634195
+        name: Configure sysctl all.disable_ipv6 value
+        method: sysctl_value
+        params:
+          key: net.ipv6.conf.all.disable_ipv6
+          value: '1'
+          filename: 70-disable-ipv6
+          option: ''

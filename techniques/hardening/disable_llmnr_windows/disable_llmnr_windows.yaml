@@ -1,0 +1,29 @@
+id: disable_llmnr_windows
+name: Disable LLMNR Windows
+version: '1.0'
+description: Disable LLMNR protocol on Windows
+documentation: |-
+  LLMNR is disabled using registry key *HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows NT\DNSClient*
+
+  A reboot of the targeted system is necessary for the change to be effective. A generic method *Command Execution* can be added to reboot automatically the systems.
+category: ncf_techniques
+items:
+  - id: b36abc8d-66ab-4b9a-bd6f-3ef5afd698ff
+    name: Configure registry key DNSClient
+    method: registry_entry_present
+    params:
+      key: HKLM:\HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows NT\DNSClient
+      entry: EnableMulticast
+      value: '0'
+      registryType: Dword
+  - id: a745297d-db6f-422d-9948-1b05515ba1d5
+    name: Check if LLMNR is disabled
+    method: audit_from_powershell_execution
+    params:
+      command: |-
+        $cmd = netstat -ano | Select-String ":5355"
+
+        if (-not $cmd) {
+            Write-Output "LLMNR-disabled"
+        }
+      successRegex: LLMNR-disabled
