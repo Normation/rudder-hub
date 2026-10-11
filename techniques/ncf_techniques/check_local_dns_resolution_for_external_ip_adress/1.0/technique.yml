@@ -1,0 +1,36 @@
+id: check_local_dns_resolution_for_external_ip_adress
+name: Check local DNS resolution for external IP adress
+version: '1.0'
+description: This technique checks DNS resolution from the local machine
+documentation: |-
+  This technique checks our external IP address against an external service, and uses dig to check whether the local machine can resolve a given hostname that should match it, typically from the local nameserver.
+  To be usable, this technique needs the node to be able to access the Internet so it can check the external address which appears to be his to the external world.
+
+  The technique takes 2 parameters :
+
+  - hostname to check : mandatory
+  - nameserver to query. Typically 127.0.0.1 for the local nameserver, or any other if we want to check that our node can get proper replies from a remote DNS server.
+category: ncf_techniques
+params:
+  - id: 70b37652-de2f-46f8-b64b-48d98e9c5b9a
+    name: check_host
+    description: Check host
+    documentation: Hostname that we will try to resolve.
+    constraints:
+      allow_empty: false
+  - id: 6dc38db7-de27-48b8-95fe-45e78032a900
+    name: query_server
+    description: DNS server
+    documentation: DNS server we want to query. Use 127.0.0.1 for the local node
+    constraints:
+      allow_empty: false
+items:
+  - id: 85cec457-d533-4cec-b294-6fca3137ec44
+    name: 10 - Check our external IP address matches DNS entry for ${check_host} on
+      ${query_server}
+    method: audit_from_command
+    params:
+      command: bash -c "[[ \"${const.dollar}(curl -s -4 https://ifconfig.me)\" ==
+        \"${const.dollar}(dig @${query_server} ${check_host} A +short | grep -E '^([1-9][0-9]{0,2}\.){3}[1-9][0-9]{0,2}${const.dollar}'
+        | cut -f2 -d' ')\" ]]"
+      compliant_codes: '0'
