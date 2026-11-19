@@ -1,0 +1,248 @@
+id: secure_ssh_configuration
+name: Secure SSH configuration
+version: '1.0'
+description: Hardened SSH configuration to match CIS recommendation
+documentation: |-
+  First, the technique configures /etc/ssh/sshd_config file.
+  In particular, it sets:
+  PermitRootLogin to no
+  Ciphers to aes128-ctr,aes192-ctr,aes256-ctr
+  DisableForwarding to yes
+  ClientAliveInterval 15
+  ClientAliveCountMax 3
+  GSSAPIAuthentication no
+
+  Then, the technique ensures only two files are present in the sshd_config.d directory. It checks the files content.
+
+  Finally, the technique checks the current configuration with sshd -T.
+category: ncf_techniques
+items:
+  - id: 0f16937c-815b-4fc5-865e-0b5987a7c09e
+    name: Harden sshd_config file
+    reporting:
+      mode: weighted
+    items:
+      - id: 13561a8d-c5ef-4e97-bb00-c65c359b5936
+        name: Ensure PermitRootLogin is set to no
+        method: file_augeas
+        params:
+          show_content: ''
+          path: /etc/ssh/sshd_config
+          lens: ''
+          script: set /files/etc/ssh/sshd_config/PermitRootLogin no
+          if_script: ''
+      - id: 9e7c8ed9-2ea0-473a-abd7-90f7a64bdad9
+        name: Ensure DisableForwarding is set to yes
+        method: file_augeas
+        params:
+          show_content: ''
+          path: /etc/ssh/sshd_config
+          lens: ''
+          script: set /files/etc/ssh/sshd_config/DisableForwarding yes
+          if_script: ''
+      - id: 8209bc48-28b7-4392-b1e6-42073badc42e
+        name: Ensure ClientAliveInterval is set to 15
+        method: file_augeas
+        params:
+          show_content: ''
+          path: /etc/ssh/sshd_config
+          lens: ''
+          script: set /files/etc/ssh/sshd_config/ClientAliveInterval 15
+          if_script: ''
+      - id: c6a364da-76b1-4eda-be3a-66384d1d9770
+        name: Ensure ClientAliveCountMax is set to 3
+        method: file_augeas
+        params:
+          show_content: ''
+          path: /etc/ssh/sshd_config
+          lens: ''
+          script: set /files/etc/ssh/sshd_config/ClientAliveCountMax 3
+          if_script: ''
+      - id: c701647c-8e9d-4fba-b1b0-99c6469cbf1a
+        name: Ensure GSSAPIAuthentication is set to no
+        method: file_augeas
+        params:
+          show_content: ''
+          path: /etc/ssh/sshd_config
+          lens: ''
+          script: set /files/etc/ssh/sshd_config/GSSAPIAuthentication no
+          if_script: ''
+      - id: f2f2cd4b-ca36-4808-9b76-fe8de467b791
+        name: Check Ciphers is set to FIPS 140-2 aes128-ctr,aes192-ctr,aes256-ctr
+        method: file_augeas
+        params:
+          show_content: ''
+          path: /etc/ssh/sshd_config
+          lens: ''
+          script: check /files/etc/ssh/sshd_config/Ciphers/* values == ['aes128-ctr','aes192-ctr','aes256-ctr']
+          if_script: ''
+      - id: 1dda4c37-dce4-43f3-b57e-f7d56c7c1931
+        name: Ensure Ciphers is set to FIPS 140-2 aes128-ctr,aes192-ctr,aes256-ctr
+        condition: file_augeas__etc_ssh_sshd_config_error
+        method: file_augeas
+        params:
+          show_content: ''
+          path: /etc/ssh/sshd_config
+          lens: ''
+          script: |-
+            rm /files/etc/ssh/sshd_config/Ciphers
+
+            set /files/etc/ssh/sshd_config/Ciphers/0 aes128-ctr
+            set /files/etc/ssh/sshd_config/Ciphers/1 aes192-ctr
+            set /files/etc/ssh/sshd_config/Ciphers/2 aes256-ctr
+          if_script: ''
+      - id: f7348bdc-47f5-469f-b0f4-d60337f0c3bf
+        name: ''
+        condition: file_augeas__etc_ssh_sshd_config_repaired
+        method: service_restart
+        params:
+          name: sshd
+  - id: 30b101c2-b112-4ec4-8198-0d06830155cc
+    name: Configure sshd_config.d
+    reporting:
+      mode: weighted
+    items:
+      - id: 45aa6316-c1c5-4bb7-999b-c5e61051a281
+        name: Check how many files are present in /etc/ssh/sshd_config.d
+        reporting:
+          mode: weighted
+        items:
+          - id: 12feb2eb-32a7-4d1a-9176-8a05ed9d46b6
+            name: ''
+            method: variable_string_from_command
+            params:
+              prefix: nb
+              name: files
+              command: find /etc/ssh/sshd_config.d -type f | wc -l
+          - id: 99da27e7-14d9-48d3-ab6a-73dd6fdb297f
+            name: ''
+            method: variable_string_from_math_expression
+            params:
+              prefix: math
+              name: nbfiles
+              expression: ${nb.files}==2
+              format: '%d'
+          - id: 4e20cd89-9fa4-40be-8a12-2558aa86c615
+            name: ''
+            method: condition_from_string_match
+            params:
+              condition: two_files_present
+              value: ${math.nbfiles}
+              regex: '1'
+      - id: 71c25a07-9226-4748-98f6-c9e30ac2e8ab
+        name: Clean /etc/ssh/sshd_config.d if more than 2 files
+        reporting:
+          mode: weighted
+        condition: two_files_present_false
+        items:
+          - id: fedc8c3b-005e-4c81-96e9-01db7a525fa9
+            name: ''
+            method: directory_absent
+            params:
+              path: /etc/ssh/sshd_config.d
+              recursive: 'true'
+          - id: 42285728-2d96-4776-87cf-5f9ff3b2ee8e
+            name: ''
+            method: directory_present
+            params:
+              path: /etc/ssh/sshd_config.d
+          - id: d59c3056-4927-4564-a975-624534fc3063
+            name: ''
+            method: permissions_dirs
+            params:
+              path: /etc/ssh/sshd_config.d
+              mode: '755'
+              owner: root
+              group: root
+      - id: 58053ee0-1dc2-4a37-8df8-fbc7f9e82ee7
+        name: ''
+        method: file_content
+        params:
+          path: /etc/ssh/sshd_config.d/50-cloud-init.conf
+          lines: PasswordAuthentication no
+          enforce: 'true'
+      - id: 39d7dfe7-775c-4fda-9c4d-f431798bb341
+        name: ''
+        method: file_content
+        params:
+          path: /etc/ssh/sshd_config.d/60-cloudimg-settings.conf
+          lines: DisableForwarding yes
+          enforce: 'true'
+      - id: 9e0b0578-4b65-484d-9733-609c7a540c19
+        name: ''
+        condition: directory_present__etc_ssh_sshd_config_d_repaired|file_lines_present__etc_ssh_sshd_config_d_50_cloud_init_conf_repaired|file_lines_present__etc_ssh_sshd_config_d_60_cloudimg_settings_conf_repaired
+        method: service_restart
+        params:
+          name: sshd
+  - id: 24738b91-3b80-44ae-af7c-31bd2a969faa
+    name: Check current configuration with sshd -T
+    reporting:
+      mode: weighted
+    items:
+      - id: bb5209ed-e07d-4bc1-bf32-32bc35b98f76
+        name: ''
+        method: variable_string
+        params:
+          prefix: stdout
+          name: sshdT
+          value: /tmp/stdoutsshdT
+      - id: 9b5c656d-5862-4461-aa53-d929685edfd1
+        name: ''
+        method: command_execution
+        params:
+          command: sshd -T > ${stdout.sshdT}
+      - id: 688e4ec2-f3c5-418f-ad18-4ff4d5baded6
+        name: 'Check stdout sshd -T '
+        reporting:
+          mode: weighted
+        items:
+          - id: 5bd8d32f-83e5-41ef-9aba-f32a34c8e4d3
+            name: Ensure sshd -T permitrootlogin is set to no
+            method: file_key_value_present
+            params:
+              path: ${stdout.sshdT}
+              key: permitrootlogin
+              value: 'no'
+              separator: ' '
+          - id: 0f69acbd-ba82-43ea-9252-3869ebc56f0f
+            name: Ensure sshd -T disableforwarding is set to yes
+            method: file_key_value_present
+            params:
+              path: ${stdout.sshdT}
+              key: disableforwarding
+              value: 'yes'
+              separator: ' '
+          - id: f919ee64-4b06-452c-a88d-6762a8088de0
+            name: Ensure sshd -T clientaliveinterval is set to 15
+            method: file_key_value_present
+            params:
+              path: ${stdout.sshdT}
+              key: clientaliveinterval
+              value: '15'
+              separator: ' '
+          - id: 28450ba1-a039-4d80-b870-6d61fb79622d
+            name: Ensure sshd -T clientalivecountmax is set to 5
+            method: file_key_value_present
+            params:
+              path: ${stdout.sshdT}
+              key: clientalivecountmax
+              value: '3'
+              separator: ' '
+          - id: d7addd9e-6b7b-47ed-9c90-daf20a8e86ea
+            name: Ensure sshd -T gssapiauthentication is set to no
+            method: file_key_value_present
+            params:
+              path: ${stdout.sshdT}
+              key: gssapiauthentication
+              value: 'no'
+              separator: ' '
+          - id: d885d4e2-8109-4b84-833a-7d4cffcd361f
+            name: Check Ciphers is set to FIPS 140-2 aes128-ctr,aes192-ctr,aes256-ctr
+            method: file_augeas
+            params:
+              show_content: ''
+              path: ${stdout.sshdT}
+              lens: ''
+              script: check /files${stdout.sshdT}/ciphers/* values == ['aes128-ctr','aes192-ctr','aes256-ctr']
+              if_script: ''
+        policy_mode_override: audit
